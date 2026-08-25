@@ -29,7 +29,17 @@ def get_media():
         FROM media;
         """)
         results = cursor.fetchall()
-    return results
+        media_list = []
+        for media in results:
+            media_id, title, media_type, genre, year = media
+            media_list.append({
+                "id": media_id,
+                "title": title,
+                "type": media_type,
+                "genre": genre,
+                "year": year
+            })
+    return media_list
 
 def get_copies():
     with get_connection() as connection:
