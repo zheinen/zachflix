@@ -1,7 +1,8 @@
 import os
+import psycopg
 
 from dotenv import load_dotenv
-import psycopg
+from psycopg.rows import dict_row
 
 load_dotenv()
 
@@ -23,27 +24,18 @@ def get_connection():
 
 def get_media():
     with get_connection() as connection:
-        cursor = connection.cursor()
+        cursor = connection.cursor(row_factory=dict_row)
         cursor.execute("""
         SELECT id, title, type, genre, year
         FROM media;
         """)
         results = cursor.fetchall()
-        media_list = []
-        for media in results:
-            media_id, title, media_type, genre, year = media
-            media_list.append({
-                "id": media_id,
-                "title": title,
-                "type": media_type,
-                "genre": genre,
-                "year": year
-            })
-    return media_list
+        
+    return results
 
 def get_copies():
     with get_connection() as connection:
-        cursor = connection.cursor()
+        cursor = connection.cursor(row_factory=dict_row)
         cursor.execute(""" 
         SELECT media.title, copy.format,
         CASE
