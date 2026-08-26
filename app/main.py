@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from app.database import get_media
 from typing import List
 from app.models import Media
@@ -12,8 +12,8 @@ def root():
     return{"message": "Welcome to ZachFlix!"}
 
 @app.get("/media", response_model=List[Media])
-def get_all_media():
-    return get_media()
+def get_all_media(media_type: str | None = Query(None, alias="type")):
+    return get_media(media_type)
 
 @app.get("/copies", response_model=List[Copy])
 def get_all_copies():

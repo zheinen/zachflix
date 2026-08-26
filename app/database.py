@@ -22,13 +22,20 @@ def get_connection():
         )
     return connection
 
-def get_media():
+def get_media(media_type = None):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
-        cursor.execute("""
-        SELECT id, title, type, genre, year
-        FROM media;
-        """)
+        if media_type is None:
+            cursor.execute("""
+            SELECT id, title, type, genre, year
+            FROM media;
+            """)
+        else:
+            cursor.execute("""
+            SELECT id, title, type, genre, year
+            FROM media
+            WHERE type = %s;
+            """, (media_type,))
         results = cursor.fetchall()
         
     return results
