@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from enum import Enum
 
 class Media(BaseModel):
     id: int
@@ -11,3 +12,7 @@ class Copy(BaseModel):
     title: str
     format: str | None=None
     availability: str
+
+class Availability(str, Enum):
+    AVAILABLE = 'AVAILABLE'
+    CHECKED_OUT = 'CHECKED OUT'

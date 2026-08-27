@@ -55,22 +55,38 @@ def get_media(media_type = None, genre = None, title = None):
         
     return results
 
-def get_copies():
+def get_copies(title=None, availability=None):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
-        cursor.execute(""" 
-        SELECT media.title, copy.format,
-        CASE
-            WHEN loans.id IS NOT NULL THEN 'CHECKED OUT'
-            ELSE 'AVAILABLE'
-        END AS availability
-        FROM copy
-        LEFT JOIN loans
-            ON copy.id = loans.copy_id
-            AND loans.returned_at IS NULL
-        LEFT JOIN media
-            ON copy.media_id = media.id;
-        """)
+        conditions = []
+        parameters = []
+        if title is not None:
+            conditions.append("media.title ILIKE %s")
+            parameters.append(f"%{title}%")
+        if availability is not None:
+            if availability == 'AVAILABLE':
+                conditions.append("loans.id IS NULL")
+            elif availability == 'CHECKED OUT':
+                conditions.append("loans.id IS NOT NULL")
+        where_clause = ""
+        if conditions:
+            where_clause = " WHERE " + " AND ".join(conditions)
+
+        query = f"""
+            SELECT media.title, copy.format,
+                CASE
+                    WHEN loans.id IS NOT NULL THEN 'CHECKED OUT'
+                    ELSE 'AVAILABLE'
+                END AS availability
+            FROM copy
+            LEFT JOIN loans
+                ON copy.id = loans.copy_id
+                AND loans.returned_at IS NULL
+            LEFT JOIN media
+                ON copy.media_id = media.id
+            {where_clause};
+        """
+        cursor.execute(query, parameters)
         results = cursor.fetchall()
     return results
 

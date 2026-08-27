@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from app.database import get_media, get_media_by_id
 from typing import List
-from app.models import Media
+from app.models import Media, Availability
 from app.database import get_copies
 from app.models import Copy
 
@@ -27,5 +27,8 @@ def get_one_media(media_id: int):
      return media
 
 @app.get("/copies", response_model=List[Copy])
-def get_all_copies():
-    return get_copies()
+def get_all_copies(
+     title: str | None = None,
+     availability: Availability | None = None
+):
+    return get_copies(title, availability.value if availability else None)
