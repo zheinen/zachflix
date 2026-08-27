@@ -73,6 +73,17 @@ def get_copies():
         """)
         results = cursor.fetchall()
     return results
+
+def get_media_by_id(media_id):
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+        cursor.execute(""" 
+        SELECT id, title, type, genre, year
+        FROM media
+        WHERE id = %s;
+        """, (media_id,))
+        result = cursor.fetchone()
+    return result
     
 media_results = get_media()
 copies_results = get_copies()
