@@ -22,7 +22,7 @@ def get_connection():
         )
     return connection
 
-def get_media(media_type = None, genre = None):
+def get_media(media_type = None, genre = None, title = None):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
         conditions = []
@@ -34,6 +34,10 @@ def get_media(media_type = None, genre = None):
         if genre is not None:
             conditions.append("genre = %s")
             parameters.append(genre)
+
+        if title is not None:
+            conditions.append("title ILIKE %s")
+            parameters.append(f"%{title}%")
 
         where_clause = ""
 
