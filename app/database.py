@@ -117,15 +117,42 @@ def create_media(media):
 
         result = cursor.fetchone()
     return result
+
+def update_media(media_id, media):
+    fields = media.model_dump(exclude_unset=True)
+
+    if not fields:
+        return None
+    set_clauses = []
+    parameters = []
+
+    for field, value in fields.items():
+        set_clauses.append(f"{field} = %s")
+        parameters.append(value)
+
+    parameters.append(media_id)
+    query = f"""
+        UPDATE media
+        SET {", ".join(set_clauses)}
+        WHERE id = %s
+        RETURNING id, title, type, genre, year;
+    """
+
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+        cursor.execute(query, parameters)
+        result = cursor.fetchone()
+
+    return result
+
+def delete_media(media_id):
+    with get_connection() as connection:
+        cursor = connection.cursor()
+        cursor.execute("""
+            DELETE FROM media
+            WHERE id = %s
+            RETURNING id;
+        """, (media_id,))
+        result = cursor.fetchone()
+    return result
     
-media_results = get_media()
-copies_results = get_copies()
-for media in media_results:
-    media_id, title, media_type, genre, year = media
-    print(f"{media_id}: {title} ({media_type}, {year})")
-
-for copy in copies_results:
-    title, format, availability = copy
-    print(f"{title} {format} is {availability}")
-
-

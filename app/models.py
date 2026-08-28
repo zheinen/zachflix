@@ -14,6 +14,12 @@ class MediaCreate(BaseModel):
     genre: str
     year: int
 
+class MediaUpdate(BaseModel):
+    title: str | None = None
+    type: str | None = None
+    genre: str | None = None
+    year: int | None = None
+
 class Copy(BaseModel):
     title: str
     format: str | None=None
