@@ -100,6 +100,23 @@ def get_media_by_id(media_id):
         """, (media_id,))
         result = cursor.fetchone()
     return result
+
+def create_media(media):
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+        cursor.execute(""" 
+            INSERT INTO media (title, type, genre, year)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, title, type, genre, year;
+        """, (
+            media.title,
+            media.type,
+            media.genre,
+            media.year
+        ))
+
+        result = cursor.fetchone()
+    return result
     
 media_results = get_media()
 copies_results = get_copies()
@@ -110,3 +127,5 @@ for media in media_results:
 for copy in copies_results:
     title, format, availability = copy
     print(f"{title} {format} is {availability}")
+
+

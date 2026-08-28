@@ -1,9 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query
-from app.database import get_media, get_media_by_id
+from fastapi import FastAPI, HTTPException, Query, status
+from app.database import get_media, get_media_by_id, get_copies, create_media as create_media_db
 from typing import List
-from app.models import Media, Availability
-from app.database import get_copies
-from app.models import Copy
+from app.models import Media, Availability, MediaCreate, Copy
 
 app = FastAPI()
 
@@ -32,3 +30,7 @@ def get_all_copies(
      availability: Availability | None = None
 ):
     return get_copies(title, availability.value if availability else None)
+
+@app.post("/media", response_model=Media, status_code=status.HTTP_201_CREATED)
+def create_media(media: MediaCreate):
+     return create_media_db(media)
