@@ -162,6 +162,24 @@ def create_loan(loan):
 
         cursor.execute("""
             SELECT id
+            FROM copy
+            WHERE id = %s;
+        """, (loan.copy_id,))
+        copy_exists = cursor.fetchone()
+        if copy_exists is None:
+            return "COPY_NOT_FOUND"
+
+        cursor.execute("""
+            SELECT id
+            FROM users
+            WHERE id = %s;
+        """, (loan.user_id,))
+        user_exists = cursor.fetchone()
+        if user_exists is None:
+            return "USER_NOT_FOUND"
+
+        cursor.execute("""
+            SELECT id
             FROM loans
             WHERE copy_id = %s
                 AND returned_at is NULL;
@@ -182,3 +200,60 @@ def create_loan(loan):
         result = cursor.fetchone()
 
     return result
+
+def return_loan(loan_id):
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+        cursor.execute("""
+            UPDATE loans
+            SET returned_at = NOW()
+            WHERE id = %s
+                AND returned_at is NULL
+            RETURNING id, copy_id, user_id, checked_out_at, returned_at;
+        """, (loan_id, ))
+        result = cursor.fetchone()
+
+    return result
+
+def get_loans():
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+
+        cursor.execute("""
+            SELECT
+                loans.id,
+                media.title,
+                copy.format,
+                users.name,
+                loans.checked_out_at,
+                loans.returned_at
+            FROM loans
+            JOIN copy on loans.copy_id = copy.id
+            JOIN media on media.id = copy.media_id
+            JOIN users on loans.user_id = users.id
+            ORDER BY loans.id
+        """)
+
+        results = cursor.fetchall();
+    return results
+
+def get_active_loans():
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+
+        cursor.execute("""
+            SELECT 
+                loans.id,
+                media.title,
+                copy.format,
+                users.name,
+                loans.checked_out_at
+            FROM loans
+            JOIN copy on loans.copy_id = copy.id
+            JOIN media on copy.media_id = media.id
+            JOIN users on loans.user_id = users.id
+            WHERE loans.returned_at IS NULL
+            ORDER BY loans.checked_out_at
+        """)
+        results = cursor.fetchall()
+    return results
