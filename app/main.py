@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, Query, status
-from app.database import get_media, get_media_by_id, get_copies
+from app.database import get_media, get_media_by_id, get_copies, create_loan as create_loan_db
 from app.database import create_media as create_media_db, update_media as update_media_db, delete_media as delete_media_db
 from typing import List
-from app.models import Media, Availability, MediaCreate, Copy, MediaUpdate
+from app.models import Media, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
 
 app = FastAPI()
 
@@ -57,3 +57,13 @@ def delete_media(media_id: int):
                status_code=404,
                detail="Media Not Found"
           )
+
+@app.post("/loans")
+def create_loan(loan: LoanCreate):
+     result = create_loan_db(loan)
+     if result is None:
+          raise HTTPException(
+               status_code=409,
+               detail="Copy is already checkout out"
+          )
+     return result

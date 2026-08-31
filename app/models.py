@@ -28,3 +28,7 @@ class Copy(BaseModel):
 class Availability(str, Enum):
     AVAILABLE = 'AVAILABLE'
     CHECKED_OUT = 'CHECKED OUT'
+
+class LoanCreate(BaseModel):
+    copy_id: int
+    user_id: int

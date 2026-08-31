@@ -155,4 +155,30 @@ def delete_media(media_id):
         """, (media_id,))
         result = cursor.fetchone()
     return result
-    
+
+def create_loan(loan):
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+
+        cursor.execute("""
+            SELECT id
+            FROM loans
+            WHERE copy_id = %s
+                AND returned_at is NULL;
+        """, (loan.copy_id,))
+
+        existing_loan = cursor.fetchone()
+        if existing_loan is not None:
+            return None
+
+        cursor.execute("""
+            INSERT INTO loans (copy_id, user_id, checked_out_at)
+            VALUES (%s, %s, NOW())
+            RETURNING id, copy_id, user_id, checked_out_at, returned_at;
+        """, (
+            loan.copy_id,
+            loan.user_id
+        ))
+        result = cursor.fetchone()
+
+    return result
