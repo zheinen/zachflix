@@ -103,3 +103,167 @@ def test_get_media_filter_and_pagination():
 
     assert len(data) == 1
     assert data[0]["genre"] == "Science Fiction"
+
+def test_create_and_return_loan():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2,
+            "user_id": 1
+        }
+    )
+
+    assert response.status_code == 201
+
+    loan = response.json()
+
+    assert loan["copy_id"] == 2
+    assert loan["user_id"] == 1
+
+    loan_id = loan["id"]
+
+    return_response = client.post(f"/loans/{loan_id}/return")
+
+    assert return_response.status_code == 200
+
+def test_cannot_checkout_checked_out_copy():
+    first_response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2,
+            "user_id": 1
+        }
+    )
+
+    assert first_response.status_code == 201
+
+    loan_id = first_response.json()["id"]
+
+    second_response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2,
+            "user_id": 1
+        }
+    )
+
+    assert second_response.status_code == 409
+
+    return_response = client.post(f"/loans/{loan_id}/return")
+
+    assert return_response.status_code == 200
+
+def test_create_loan_invalid_copy():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": 9999,
+            "user_id": 1
+        }
+    )
+
+    assert response.status_code == 404
+
+def test_create_loan_invalid_user():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2,
+            "user_id": 9999
+        }
+    )
+
+    assert response.status_code == 404
+
+def test_cannot_return_loan_twice():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2,
+            "user_id": 1
+        }
+    )
+
+    assert response.status_code == 201
+
+    loan_id = response.json()["id"]
+
+    first_return = client.post(f"/loans/{loan_id}/return")
+
+    assert first_return.status_code == 200
+
+    second_return = client.post(f"/loans/{loan_id}/return")
+
+    assert second_return.status_code == 404
+
+def test_return_nonexistent_loan():
+    response = client.post("/loans/9999/return")
+
+    assert response.status_code == 404
+
+def test_get_loans():
+    response = client.get("/loans")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert isinstance(data, list)
+    assert len(data) > 0
+
+    for loan in data:
+        assert "id" in loan
+        assert "title" in loan
+        assert "format" in loan
+        assert "name" in loan
+        assert "checked_out_at" in loan
+        assert "returned_at" in loan
+
+def test_get_active_loans():
+    response = client.get("/loans/active")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert isinstance(data, list)
+
+    for loan in data:
+        assert "id" in loan
+        assert "title" in loan
+        assert "format" in loan
+        assert "name" in loan
+        assert "checked_out_at" in loan
+
+def test_active_loan_lifecycle():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2,
+            "user_id": 1
+        }
+    )
+
+    assert response.status_code == 201
+
+    loan_id = response.json()["id"]
+
+    active_response = client.get("/loans/active")
+
+    assert active_response.status_code == 200
+
+    active_loans = active_response.json()
+
+    assert any(loan["id"] == loan_id for loan in active_loans)
+
+    return_response = client.post(f"/loans/{loan_id}/return")
+
+    assert return_response.status_code == 200
+
+    active_response = client.get("/loans/active")
+
+    assert active_response.status_code == 200
+
+    active_loans = active_response.json()
+
+    assert all(loan["id"] != loan_id for loan in active_loans)
