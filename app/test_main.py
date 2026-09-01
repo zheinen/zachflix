@@ -267,3 +267,34 @@ def test_active_loan_lifecycle():
     active_loans = active_response.json()
 
     assert all(loan["id"] != loan_id for loan in active_loans)
+
+def test_create_loan_missing_copy_id():
+    response = client.post(
+        "/loans",
+        json={
+            "user_id": 1
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_create_loan_missing_user_id():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": 2
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_create_loan_invalid_data_type():
+    response = client.post(
+        "/loans",
+        json={
+            "copy_id": "two",
+            "user_id": 1
+        }
+    )
+
+    assert response.status_code == 422
