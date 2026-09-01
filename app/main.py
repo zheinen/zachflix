@@ -15,9 +15,11 @@ def root():
 def get_all_media(
     media_type: str | None = Query(None, alias="type"), 
     genre: str | None = None,
-    title: str | None = None
+    title: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0)
     ):
-        return get_media(media_type, genre, title)
+        return get_media(media_type, genre, title, limit, offset)
 
 @app.get("/media/{media_id}", response_model=Media)
 def get_one_media(media_id: int):

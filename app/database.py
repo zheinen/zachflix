@@ -22,7 +22,7 @@ def get_connection():
         )
     return connection
 
-def get_media(media_type = None, genre = None, title = None):
+def get_media(media_type = None, genre = None, title = None, limit=20, offset=0):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
         conditions = []
@@ -47,9 +47,10 @@ def get_media(media_type = None, genre = None, title = None):
         query = f"""
             SELECT id, title, type, genre, year
             FROM media
-            {where_clause};
+            {where_clause}
             """
-        
+        query += " ORDER BY id LIMIT %s OFFSET %s;"
+        parameters.extend([limit, offset])
         cursor.execute(query, parameters)
         results = cursor.fetchall()
         
