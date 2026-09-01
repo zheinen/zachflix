@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import get_media, get_media_by_id, get_copies, create_loan as create_loan_db, return_loan as return_loan_db
 from app.database import create_media as create_media_db, update_media as update_media_db, delete_media as delete_media_db
 from app.database import get_loans as get_loans_db, get_active_loans
@@ -6,6 +7,13 @@ from typing import List
 from app.models import Media, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
 
 app = FastAPI()
+app.add_middleware(
+     CORSMiddleware,
+     allow_origins=["http://localhost:5173"],
+     allow_credentials=True,
+     allow_methods=["*"],
+     allow_headers=["*"]
+)
 
 @app.get("/")
 def root():
