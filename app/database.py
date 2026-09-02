@@ -56,6 +56,36 @@ def get_media(media_type = None, genre = None, title = None, limit=20, offset=0)
         
     return results
 
+def get_media_count(media_type=None, genre=None, title=None):
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+        conditions = []
+        parameters = []
+        if media_type is not None:
+            conditions.append("type = %s")
+            parameters.append(media_type)
+        
+        if genre is not None:
+            conditions.append("genre = %s")
+            parameters.append(genre)
+        
+        if title is not None:
+            conditions.append("title ILIKE %s")
+            parameters.append(f"%{title}%")
+        
+        where_clause = ""       
+        if conditions:
+            where_clause = " WHERE " + " AND ".join(conditions)
+        query = f"""
+                SELECT COUNT(*)
+                FROM media
+                {where_clause}
+                """
+        cursor.execute(query, parameters)
+        results = cursor.fetchone()
+    return results["count"]
+
+
 def get_copies(title=None, availability=None):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)

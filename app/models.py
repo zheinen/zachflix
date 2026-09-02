@@ -8,6 +8,10 @@ class Media(BaseModel):
     genre: str | None = None
     year: int | None = None
 
+class MediaResponse(BaseModel):
+    items: list[Media]
+    total: int
+
 class MediaCreate(BaseModel):
     title: str
     type: str

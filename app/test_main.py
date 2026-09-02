@@ -8,10 +8,11 @@ def test_get_media():
     assert response.status_code == 200
 
     data = response.json()
-    assert isinstance(data, list)
-    assert len(data) > 0
+    assert isinstance(data["items"], list)
+    assert len(data["items"]) > 0
+    assert data["total"] > 0
 
-    for item in data:
+    for item in data["items"]:
         assert "id" in item
         assert "title" in item
         assert "type" in item
@@ -22,7 +23,7 @@ def test_get_media_limit():
     response = client.get("/media?limit=1")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 1
+    assert len(data["items"]) == 1
 
 def test_get_media_offset():
     first_response = client.get("/media?limit=1&offset=0")
@@ -34,10 +35,11 @@ def test_get_media_offset():
     first_data = first_response.json()
     second_data = second_response.json()
 
-    assert len(first_data) == 1
-    assert len(second_data) == 1
+    assert len(first_data["items"]) == 1
+    assert len(second_data["items"]) == 1
 
-    assert first_data[0]["id"] != second_data[0]["id"]
+    assert first_data["items"][0]["id"] != second_data["items"][0]["id"]
+    assert first_data["total"] == second_data["total"]
 
 def test_get_media_invalid_limit():
     response = client.get("/media?limit=101")
@@ -51,8 +53,8 @@ def test_get_media_genre():
     response = client.get("/media?genre=Science%20Fiction")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) > 0
-    for item in data:
+    assert len(data["items"]) > 0
+    for item in data["items"]:
         assert item["genre"] == "Science Fiction"
 
 def test_get_media_type():
@@ -62,9 +64,9 @@ def test_get_media_type():
 
     data = response.json()
 
-    assert len(data) > 0
+    assert len(data["items"]) > 0
 
-    for item in data:
+    for item in data["items"]:
         assert item["type"] == "Movie"
 
 def test_get_media_title():
@@ -74,9 +76,9 @@ def test_get_media_title():
 
     data = response.json()
 
-    assert len(data) > 0
+    assert len(data["items"]) > 0
 
-    for item in data:
+    for item in data["items"]:
         assert item["title"] == "The Empire Strikes Back"
 
 def test_get_media_combined_filters():
@@ -86,9 +88,9 @@ def test_get_media_combined_filters():
 
     data = response.json()
 
-    assert len(data) > 0
+    assert len(data["items"]) > 0
 
-    for item in data:
+    for item in data["items"]:
         assert item["type"] == "Movie"
         assert item["genre"] == "Science Fiction"
 
@@ -101,8 +103,8 @@ def test_get_media_filter_and_pagination():
 
     data = response.json()
 
-    assert len(data) == 1
-    assert data[0]["genre"] == "Science Fiction"
+    assert len(data["items"]) == 1
+    assert data["items"][0]["genre"] == "Science Fiction"
 
 def test_create_and_return_loan():
     response = client.post(

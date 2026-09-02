@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import get_media, get_media_by_id, get_copies, create_loan as create_loan_db, return_loan as return_loan_db
+from app.database import get_media, get_media_count, get_media_by_id, get_copies, create_loan as create_loan_db, return_loan as return_loan_db
 from app.database import create_media as create_media_db, update_media as update_media_db, delete_media as delete_media_db
 from app.database import get_loans as get_loans_db, get_active_loans
 from typing import List
-from app.models import Media, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
+from app.models import Media, MediaResponse, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
 
 app = FastAPI()
 app.add_middleware(
@@ -19,7 +19,7 @@ app.add_middleware(
 def root():
     return{"message": "Welcome to ZachFlix!"}
 
-@app.get("/media", response_model=List[Media])
+@app.get("/media", response_model=MediaResponse)
 def get_all_media(
     media_type: str | None = Query(None, alias="type"), 
     genre: str | None = None,
@@ -27,7 +27,9 @@ def get_all_media(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0)
     ):
-        return get_media(media_type, genre, title, limit, offset)
+        media_items = get_media(media_type, genre, title, limit, offset)
+        media_count = get_media_count(media_type, genre, title)
+        return {"items": media_items, "total": media_count}
 
 @app.get("/media/{media_id}", response_model=Media)
 def get_one_media(media_id: int):
