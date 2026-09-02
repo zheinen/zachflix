@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Container, Typography, Card, CardContent, Grid } from "@mui/material";
 
 interface Media {
   id: number;
@@ -54,13 +55,23 @@ function App() {
     setOffset(offset + limit);
   };
   return (
-    <div>
-      <h1>ZachFlix!</h1>
-      <ul>
+    <Container>
+      <Typography variant="h3">ZachFlix!</Typography>
+      <Grid container spacing={2}>
         {mediaItems
-          ? mediaItems.map((item) => <li key={item.id}>{item.title}</li>)
+          ? mediaItems.map((item) => {
+              return (
+                <Grid key={item.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6">{item.title}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })
           : null}
-      </ul>
+      </Grid>
       <div style={{ display: "flex", flexDirection: "row" }}>
         <button onClick={() => clickPrevious()} disabled={offset - limit < 0}>
           Previous
@@ -72,7 +83,7 @@ function App() {
           Next
         </button>
       </div>
-    </div>
+    </Container>
   );
 }
 export default App;
