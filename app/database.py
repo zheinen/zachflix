@@ -12,6 +12,8 @@ database_name = os.getenv("DATABASE_NAME")
 database_user = os.getenv("DATABASE_USER")
 database_password = os.getenv("DATABASE_PASSWORD")
 
+tmdb_api_token = os.getenv("TMDB_API_TOKEN")
+
 def get_connection():
     connection = psycopg.connect(
             host=database_host,
@@ -45,7 +47,7 @@ def get_media(media_type = None, genre = None, title = None, limit=20, offset=0)
             where_clause = " WHERE " + " AND ".join(conditions)
 
         query = f"""
-            SELECT id, title, type, genre, year
+            SELECT id, title, type, genre, year, image
             FROM media
             {where_clause}
             """
@@ -132,18 +134,19 @@ def get_media_by_id(media_id):
         result = cursor.fetchone()
     return result
 
-def create_media(media):
+def create_media(media, image=None):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
         cursor.execute(""" 
-            INSERT INTO media (title, type, genre, year)
-            VALUES (%s, %s, %s, %s)
-            RETURNING id, title, type, genre, year;
+            INSERT INTO media (title, type, genre, year, image)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING id, title, type, genre, year, image;
         """, (
             media.title,
             media.type,
             media.genre,
-            media.year
+            media.year,
+            image
         ))
 
         result = cursor.fetchone()
@@ -288,3 +291,14 @@ def get_active_loans():
         """)
         results = cursor.fetchall()
     return results
+
+def update_media_image(media_id, image):
+    with get_connection() as connection:
+        cursor = connection.cursor()
+        query = """
+            UPDATE media
+            SET image = %s
+            WHERE id = %s
+        """
+
+        cursor.execute(query, (image, media_id))

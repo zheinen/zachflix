@@ -5,6 +5,7 @@ from app.database import create_media as create_media_db, update_media as update
 from app.database import get_loans as get_loans_db, get_active_loans
 from typing import List
 from app.models import Media, MediaResponse, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
+from app.tmdb import get_movie_poster
 
 app = FastAPI()
 app.add_middleware(
@@ -47,7 +48,10 @@ def get_all_copies(
 
 @app.post("/media", response_model=Media, status_code=status.HTTP_201_CREATED)
 def create_media(media: MediaCreate):
-     return create_media_db(media)
+     image = None
+     if media.type == "Movie":
+          image = get_movie_poster(media.title)
+     return create_media_db(media, image)
 
 @app.patch("/media/{media_id}")
 def update_media(media_id: int, media: MediaUpdate):

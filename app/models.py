@@ -7,6 +7,7 @@ class Media(BaseModel):
     type: str
     genre: str | None = None
     year: int | None = None
+    image: str | None = None
 
 class MediaResponse(BaseModel):
     items: list[Media]

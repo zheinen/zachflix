@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { Container, Typography, Card, CardContent, Grid } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  CardMedia,
+  Grid,
+  Chip,
+  Stack,
+} from "@mui/material";
 
 interface Media {
   id: number;
@@ -7,6 +16,7 @@ interface Media {
   type: string;
   genre: string;
   year: number;
+  image: string;
 }
 
 function App() {
@@ -63,8 +73,22 @@ function App() {
               return (
                 <Grid key={item.id} size={{ xs: 12, md: 6, lg: 4 }}>
                   <Card>
+                    <CardMedia
+                      component="img"
+                      image={item.image ?? undefined}
+                      alt={item.title}
+                      sx={{
+                        height: 200,
+                        objectFit: "contain",
+                      }}
+                    />
                     <CardContent>
                       <Typography variant="h6">{item.title}</Typography>
+                      <Stack direction={"row"} spacing={1} sx={{ mb: 1 }}>
+                        <Chip label={item.type} />
+                        <Chip label={item.genre} />
+                      </Stack>
+                      <Typography variant="body2">{item.year}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
