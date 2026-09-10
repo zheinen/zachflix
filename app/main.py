@@ -2,10 +2,10 @@ from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import get_media, get_media_count, get_media_by_id, get_copies, create_loan as create_loan_db, return_loan as return_loan_db
 from app.database import create_media as create_media_db, update_media as update_media_db, delete_media as delete_media_db
-from app.database import get_loans as get_loans_db, get_active_loans
+from app.database import get_loans as get_loans_db, get_active_loans, create_movie
 from typing import List
 from app.models import Media, MediaResponse, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
-from app.tmdb import get_movie_poster
+from app.tmdb import search_movie, get_movie_details, get_movie_director, get_poster_url
 
 app = FastAPI()
 app.add_middleware(
@@ -25,11 +25,12 @@ def get_all_media(
     media_type: str | None = Query(None, alias="type"), 
     genre: str | None = None,
     title: str | None = None,
+    year: int | None = None,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0)
     ):
-        media_items = get_media(media_type, genre, title, limit, offset)
-        media_count = get_media_count(media_type, genre, title)
+        media_items = get_media(media_type, genre, title, year, limit, offset)
+        media_count = get_media_count(media_type, genre, title, year)
         return {"items": media_items, "total": media_count}
 
 @app.get("/media/{media_id}", response_model=Media)
@@ -49,9 +50,19 @@ def get_all_copies(
 @app.post("/media", response_model=Media, status_code=status.HTTP_201_CREATED)
 def create_media(media: MediaCreate):
      image = None
+     director = None
+     length = None
      if media.type == "Movie":
-          image = get_movie_poster(media.title)
-     return create_media_db(media, image)
+          movie = search_movie(media.title, media.year)
+          if movie is not None:
+               image = get_poster_url(movie["poster_path"])
+               details = get_movie_details(movie["id"])
+               director = get_movie_director(details)
+               length = details["runtime"]
+     media_result = create_media_db(media, image)
+     if media.type == "Movie" and movie is not None:
+          create_movie(media_result["id"], director, length)
+     return media_result
 
 @app.patch("/media/{media_id}")
 def update_media(media_id: int, media: MediaUpdate):

@@ -6,7 +6,7 @@ load_dotenv()
 
 tmdb_api_token = os.getenv("TMDB_API_TOKEN")
 
-def search_movie(title):
+def search_movie(title, year=None):
     url = "https://api.themoviedb.org/3/search/movie"
     headers = {
         "Authorization": f"Bearer {tmdb_api_token}"
@@ -14,6 +14,8 @@ def search_movie(title):
     parameters = {
         "query": title
     }
+    if year is not None:
+        parameters["year"] = year
     response = requests.get(url, headers=headers, params=parameters)
 
     response.raise_for_status()
@@ -21,6 +23,10 @@ def search_movie(title):
 
     if not results:
         return None
+
+    for result in results:
+        if result["title"].lower() == title.lower():
+            return result
     
     return results[0]
 
@@ -29,14 +35,6 @@ def get_poster_url(poster_path):
         return None
 
     return f"https://image.tmdb.org/t/p/w500{poster_path}"
-
-def get_movie_poster(title):
-    movie = search_movie(title)
-
-    if movie is None:
-        return None
-    
-    return get_poster_url(movie["poster_path"])
 
 def get_movie_details(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"

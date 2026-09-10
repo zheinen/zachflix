@@ -24,7 +24,7 @@ def get_connection():
         )
     return connection
 
-def get_media(media_type = None, genre = None, title = None, limit=20, offset=0):
+def get_media(media_type = None, genre = None, title = None, year = None, limit=20, offset=0):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
         conditions = []
@@ -40,6 +40,10 @@ def get_media(media_type = None, genre = None, title = None, limit=20, offset=0)
         if title is not None:
             conditions.append("title ILIKE %s")
             parameters.append(f"%{title}%")
+
+        if year is not None:
+            conditions.append("year = %s")
+            parameters.append(year)
 
         where_clause = ""
 
@@ -58,7 +62,7 @@ def get_media(media_type = None, genre = None, title = None, limit=20, offset=0)
         
     return results
 
-def get_media_count(media_type=None, genre=None, title=None):
+def get_media_count(media_type=None, genre=None, title=None, year=None):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
         conditions = []
@@ -74,6 +78,10 @@ def get_media_count(media_type=None, genre=None, title=None):
         if title is not None:
             conditions.append("title ILIKE %s")
             parameters.append(f"%{title}%")
+
+        if year is not None:
+            conditions.append("year = %s")
+            parameters.append(year)
         
         where_clause = ""       
         if conditions:
@@ -127,7 +135,7 @@ def get_media_by_id(media_id):
     with get_connection() as connection:
         cursor = connection.cursor(row_factory=dict_row)
         cursor.execute(""" 
-        SELECT id, title, type, genre, year
+        SELECT id, title, type, genre, year, image
         FROM media
         WHERE id = %s;
         """, (media_id,))
@@ -302,3 +310,16 @@ def update_media_image(media_id, image):
         """
 
         cursor.execute(query, (image, media_id))
+
+def create_movie(media_id, director, length):
+    with get_connection() as connection:
+        cursor = connection.cursor(row_factory=dict_row)
+
+        cursor.execute(""" 
+            INSERT INTO movies (media_id, director, length)
+            VALUES (%s, %s, %s)
+            RETURNING media_id, director, length;
+        """, (media_id, director, length))
+
+        result = cursor.fetchone()
+    return result

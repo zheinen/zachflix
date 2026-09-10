@@ -57,6 +57,33 @@ def test_get_media_genre():
     for item in data["items"]:
         assert item["genre"] == "Science Fiction"
 
+def test_get_media_year():
+
+    response = client.get("/media?year=1978")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data["items"]) > 0
+
+    for item in data["items"]:
+        assert item["year"] == 1978
+
+def test_get_media_title_and_year():
+
+    response = client.get("/media?title=Superman&year=1978")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data["items"]) > 0
+
+    for item in data["items"]:
+        assert item["title"] == "Superman"
+        assert item["year"] == 1978
+
 def test_get_media_type():
     response = client.get("/media?type=Movie")
 
