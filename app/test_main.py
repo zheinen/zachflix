@@ -327,3 +327,33 @@ def test_create_loan_invalid_data_type():
     )
 
     assert response.status_code == 422
+
+def test_get_one_media_movie_details():
+    response = client.get("/media/17")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["title"] == "Superman"
+    assert data["type"] == "Movie"
+    assert data["details"]["director"] == "Richard Donner"
+    assert data["details"]["length"] == 144
+
+
+def test_get_one_media_without_details():
+    response = client.get("/media/2")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["title"] == "The Hobbit: An Unexpected Journey"
+    assert data["type"] == "Book"
+    assert data["details"] is None
+
+def test_get_one_media_not_found():
+    response = client.get("/media/99999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Media Not Found"

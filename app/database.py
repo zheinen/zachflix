@@ -140,6 +140,16 @@ def get_media_by_id(media_id):
         WHERE id = %s;
         """, (media_id,))
         result = cursor.fetchone()
+        movie_details = None
+        if result is not None and result["type"] == "Movie":
+            cursor.execute(""" 
+                SELECT director, length
+                FROM movies
+                WHERE media_id = %s;
+            """, (media_id,))
+            movie_details = cursor.fetchone();
+        if movie_details is not None:
+            result["details"] = movie_details
     return result
 
 def create_media(media, image=None):

@@ -9,6 +9,13 @@ class Media(BaseModel):
     year: int | None = None
     image: str | None = None
 
+class MovieDetails(BaseModel):
+    director: str
+    length: int
+
+class MediaDetailsResponse(Media):
+    details: MovieDetails | None = None
+
 class MediaResponse(BaseModel):
     items: list[Media]
     total: int

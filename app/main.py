@@ -4,7 +4,7 @@ from app.database import get_media, get_media_count, get_media_by_id, get_copies
 from app.database import create_media as create_media_db, update_media as update_media_db, delete_media as delete_media_db
 from app.database import get_loans as get_loans_db, get_active_loans, create_movie
 from typing import List
-from app.models import Media, MediaResponse, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate
+from app.models import Media, MediaResponse, Availability, MediaCreate, Copy, MediaUpdate, LoanCreate, MediaDetailsResponse
 from app.tmdb import search_movie, get_movie_details, get_movie_director, get_poster_url
 
 app = FastAPI()
@@ -33,7 +33,7 @@ def get_all_media(
         media_count = get_media_count(media_type, genre, title, year)
         return {"items": media_items, "total": media_count}
 
-@app.get("/media/{media_id}", response_model=Media)
+@app.get("/media/{media_id}", response_model=MediaDetailsResponse)
 def get_one_media(media_id: int):
      media = get_media_by_id(media_id)
      if media is None:
