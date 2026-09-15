@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link, Routes, Route } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -9,15 +10,8 @@ import {
   Chip,
   Stack,
 } from "@mui/material";
-
-interface Media {
-  id: number;
-  title: string;
-  type: string;
-  genre: string;
-  year: number;
-  image: string;
-}
+import type { Media } from "./interfaces";
+import MediaDetails from "./MediaDetails";
 
 function App() {
   const [mediaItems, setMediaItems] = useState<Media[] | null>(null);
@@ -66,47 +60,66 @@ function App() {
   };
   return (
     <Container>
-      <Typography variant="h3">ZachFlix!</Typography>
-      <Grid container spacing={2}>
-        {mediaItems
-          ? mediaItems.map((item) => {
-              return (
-                <Grid key={item.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                  <Card>
-                    <CardMedia
-                      component="img"
-                      image={item.image ?? undefined}
-                      alt={item.title}
-                      sx={{
-                        height: 200,
-                        objectFit: "contain",
-                      }}
-                    />
-                    <CardContent>
-                      <Typography variant="h6">{item.title}</Typography>
-                      <Stack direction={"row"} spacing={1} sx={{ mb: 1 }}>
-                        <Chip label={item.type} />
-                        <Chip label={item.genre} />
-                      </Stack>
-                      <Typography variant="body2">{item.year}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })
-          : null}
-      </Grid>
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        <button onClick={() => clickPrevious()} disabled={offset - limit < 0}>
-          Previous
-        </button>
-        <button
-          onClick={() => clickNext()}
-          disabled={offset + limit >= mediaTotal}
-        >
-          Next
-        </button>
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <Typography variant="h3">ZachFlix!</Typography>
+              <Grid container spacing={2}>
+                {mediaItems
+                  ? mediaItems.map((item) => {
+                      return (
+                        <Grid key={item.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                          <Card component={Link} to={`/media/${item.id}`}>
+                            <CardMedia
+                              component="img"
+                              image={item.image ?? undefined}
+                              alt={item.title}
+                              sx={{
+                                height: 200,
+                                objectFit: "contain",
+                              }}
+                            />
+                            <CardContent>
+                              <Typography variant="h6">{item.title}</Typography>
+                              <Stack
+                                direction={"row"}
+                                spacing={1}
+                                sx={{ mb: 1 }}
+                              >
+                                <Chip label={item.type} />
+                                <Chip label={item.genre} />
+                              </Stack>
+                              <Typography variant="body2">
+                                {item.year}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      );
+                    })
+                  : null}
+              </Grid>
+              <div style={{ display: "flex", flexDirection: "row" }}>
+                <button
+                  onClick={() => clickPrevious()}
+                  disabled={offset - limit < 0}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => clickNext()}
+                  disabled={offset + limit >= mediaTotal}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          }
+        />
+        <Route path="/media/:id" element={<MediaDetails />} />
+      </Routes>
     </Container>
   );
 }
